@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -10,8 +11,7 @@ public class AnalogClockControl : Control
 {
     private readonly DispatcherTimer _timer;
 
-    // Expose a Foreground property so consumers can style the clock hands/ticks
-    public static readonly StyledProperty<IBrush?> ForegroundProperty =
+    private static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<AnalogClockControl, IBrush?>(nameof(Foreground), Brushes.Black);
 
     public IBrush? Foreground
@@ -54,7 +54,7 @@ public class AnalogClockControl : Control
         var faceBrush = isDark ? new SolidColorBrush(Color.FromUInt32(0xFF22252A)) : new SolidColorBrush(Color.FromUInt32(0xFFFFFFFF));
         var facePen = new Pen(isDark ? new SolidColorBrush(Color.FromUInt32(0xFF444A52)) : new SolidColorBrush(Color.FromUInt32(0xFFCCCCCC)), 2);
         var tickPen = new Pen(foreground, 2);
-        var minorTickPen = new Pen(foreground, 1);
+        var minorTickPen = new Pen(foreground);
 
         // Draw clock face
         context.DrawEllipse(faceBrush, facePen, center, radius, radius);
@@ -72,6 +72,32 @@ public class AnalogClockControl : Control
             context.DrawLine(i % 5 == 0 ? tickPen : minorTickPen, inner, outer);
         }
 
+        // Draw hour numbers (1-12)
+        // Keep them inside the hour ticks a bit
+        var numberRadius = radius * 0.66;
+        var numberTypeface = new Typeface(Typeface.Default.FontFamily, FontStyle.Normal, FontWeight.SemiBold);
+        var numberSize = Math.Max(10, radius * 0.12); // scale with control size, clamp to a readable minimum
+        var culture = CultureInfo.CurrentUICulture;
+        const FlowDirection flow = FlowDirection.LeftToRight;
+        for (var h = 1; h <= 12; h++)
+        {
+            var angle = Math.PI * 2 * (h / 12.0) - Math.PI / 2; // 12 at the top
+            var cos = Math.Cos(angle);
+            var sin = Math.Sin(angle);
+
+            var pos = new Point(center.X + cos * numberRadius, center.Y + sin * numberRadius);
+
+            // Use FormattedText so we can measure and center precisely
+            var text = h.ToString();
+            var ft = new FormattedText(text, culture, flow, numberTypeface, numberSize, foreground);
+            // Approximate text size since FormattedText doesn't expose Size in this API surface
+            var approxWidth = (text.Length == 1 ? 0.6 : 0.9) * numberSize;
+            var approxHeight = numberSize; // rough height equals font size
+            // Center the text at computed position
+            var origin = new Point(pos.X - approxWidth / 2.0, pos.Y - approxHeight / 2.0);
+            context.DrawText(ft, origin);
+        }
+
         // Current time
         var now = DateTime.Now;
         var sec = now.Second + now.Millisecond / 1000.0;
@@ -79,9 +105,9 @@ public class AnalogClockControl : Control
         var hour = now.Hour % 12 + min / 60.0;
 
         // Hands
-        DrawHand(context, center, radius * 0.55, hour / 12.0, thickness: 5, brush: foreground);
-        DrawHand(context, center, radius * 0.75, min / 60.0, thickness: 3, brush: foreground);
-        DrawHand(context, center, radius * 0.85, sec / 60.0, thickness: 1.5, brush: isDark ? Brushes.OrangeRed : Brushes.Crimson);
+        DrawHand(context, center, radius * 0.55, hour / 12.0, 5, Brushes.Red);
+        DrawHand(context, center, radius * 0.75, min / 60.0, 3, Brushes.Blue);
+        DrawHand(context, center, radius * 0.85, sec / 60.0, 1.5, isDark ? Brushes.White : Brushes.Black);
 
         // Center cap
         context.DrawGeometry(isDark ? Brushes.OrangeRed : Brushes.Crimson, null,
