@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 
 namespace AStar.Dev.Clock;
@@ -14,8 +15,7 @@ public partial class MainWindow : Window
 
     private void InitializeComponent()
     {
-        AvaloniaXamlLoaderPortable.Ensure();
-        Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(this);
+        AvaloniaXamlLoader.Load(this);
     }
 
     private void OnLight(object? sender, RoutedEventArgs e)
@@ -26,15 +26,4 @@ public partial class MainWindow : Window
 
     private void OnAuto(object? sender, RoutedEventArgs e)
         => (Application.Current as App)?.SetTheme(null);
-}
-
-// Small helper to avoid trimming issues in single-file publish scenarios
-internal static class AvaloniaXamlLoaderPortable
-{
-    private static bool _loaded;
-    public static void Ensure()
-    {
-        if (_loaded) return;
-        _loaded = true;
-    }
 }

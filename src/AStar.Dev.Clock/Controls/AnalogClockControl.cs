@@ -1,7 +1,7 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 
 namespace AStar.Dev.Clock.Controls;
@@ -9,6 +9,16 @@ namespace AStar.Dev.Clock.Controls;
 public class AnalogClockControl : Control
 {
     private readonly DispatcherTimer _timer;
+
+    // Expose a Foreground property so consumers can style the clock hands/ticks
+    public static readonly StyledProperty<IBrush?> ForegroundProperty =
+        AvaloniaProperty.Register<AnalogClockControl, IBrush?>(nameof(Foreground), Brushes.Black);
+
+    public IBrush? Foreground
+    {
+        get => GetValue(ForegroundProperty);
+        set => SetValue(ForegroundProperty, value);
+    }
 
     public AnalogClockControl()
     {
@@ -37,9 +47,9 @@ public class AnalogClockControl : Control
         var radius = Math.Min(bounds.Width, bounds.Height) * 0.45;
 
         // Theme-aware brushes
-        var foreground = this.Foreground ?? Brushes.Black;
-        var isDark = this.GetValue(TemplatedControl.RequestedThemeVariantProperty) == Avalonia.Styling.ThemeVariant.Dark
-                     || (Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark);
+        var isDark = ActualThemeVariant == ThemeVariant.Dark
+                     || Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        var foreground = Foreground ?? (isDark ? Brushes.White : Brushes.Black);
 
         var faceBrush = isDark ? new SolidColorBrush(Color.FromUInt32(0xFF22252A)) : new SolidColorBrush(Color.FromUInt32(0xFFFFFFFF));
         var facePen = new Pen(isDark ? new SolidColorBrush(Color.FromUInt32(0xFF444A52)) : new SolidColorBrush(Color.FromUInt32(0xFFCCCCCC)), 2);
@@ -50,7 +60,7 @@ public class AnalogClockControl : Control
         context.DrawEllipse(faceBrush, facePen, center, radius, radius);
 
         // Draw ticks
-        for (int i = 0; i < 60; i++)
+        for (var i = 0; i < 60; i++)
         {
             var angle = Math.PI * 2 * (i / 60.0) - Math.PI / 2; // start at 12 o'clock
             var cos = Math.Cos(angle);
@@ -64,9 +74,9 @@ public class AnalogClockControl : Control
 
         // Current time
         var now = DateTime.Now;
-        double sec = now.Second + now.Millisecond / 1000.0;
-        double min = now.Minute + sec / 60.0;
-        double hour = (now.Hour % 12) + min / 60.0;
+        var sec = now.Second + now.Millisecond / 1000.0;
+        var min = now.Minute + sec / 60.0;
+        var hour = now.Hour % 12 + min / 60.0;
 
         // Hands
         DrawHand(context, center, radius * 0.55, hour / 12.0, thickness: 5, brush: foreground);

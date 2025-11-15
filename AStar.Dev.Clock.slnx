@@ -2,5 +2,7 @@
   <Folder Name="/SolutionFolder1/">
     <File Path="README.md" />
   </Folder>
-  <Project Path="AStar.Dev.Clock/AStar.Dev.Clock.csproj" />
+    <Folder Name="/src/">
+        <Project Path="src/AStar.Dev.Clock/AStar.Dev.Clock.csproj"/>
+    </Folder>
 </Solution>

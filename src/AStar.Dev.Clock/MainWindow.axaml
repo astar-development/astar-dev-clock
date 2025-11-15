@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:AStar.Dev.Clock"
         xmlns:c="clr-namespace:AStar.Dev.Clock.Controls"
         x:Class="AStar.Dev.Clock.MainWindow"
+        Icon="avares://AStar.Dev.Clock/Assets/astar.ico"
         Width="400" Height="450"
-        Title="AStar.Dev.Clock">
+        Title="AStar Development Clock">
+  
   <DockPanel>
     <StackPanel Orientation="Horizontal" Spacing="8" Margin="8" DockPanel.Dock="Top">
       <Button Content="Light" Click="OnLight"/>
@@ -15,4 +16,5 @@
       <c:AnalogClockControl />
     </Border>
   </DockPanel>
+  
 </Window>
