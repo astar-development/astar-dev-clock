@@ -99,14 +99,18 @@ public class AnalogClockControl : Control
         }
 
         // Current time
+        // Note: We invalidate once per second via DispatcherTimer. Using milliseconds here
+        // would place the second hand between ticks most of the time because the timer
+        // doesn't fire exactly on the zero millisecond boundary. Snap to whole seconds
+        // so the second hand aligns precisely with the 60 tick marks.
         var now = DateTime.Now;
-        var sec = now.Second + now.Millisecond / 1000.0;
+        var sec = now.Second; // snap to whole second to align with tick marks
         var min = now.Minute + sec / 60.0;
         var hour = now.Hour % 12 + min / 60.0;
 
         // Hands
-        DrawHand(context, center, radius * 0.55, hour / 12.0, 5, Brushes.Red);
-        DrawHand(context, center, radius * 0.75, min / 60.0, 3, Brushes.Blue);
+        DrawHand(context, center, radius * 0.55, hour / 12.0, 8, Brushes.Red);
+        DrawHand(context, center, radius * 0.75, min / 60.0, 5, Brushes.Blue);
         DrawHand(context, center, radius * 0.85, sec / 60.0, 1.5, isDark ? Brushes.White : Brushes.Black);
 
         // Center cap
