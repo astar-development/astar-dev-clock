@@ -9,8 +9,6 @@ namespace AStar.Dev.Clock.Controls;
 
 public class AnalogClockControl : Control
 {
-    private readonly DispatcherTimer _timer;
-
     private static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<AnalogClockControl, IBrush?>(nameof(Foreground), Brushes.Black);
 
@@ -26,6 +24,15 @@ public class AnalogClockControl : Control
 
     public static readonly StyledProperty<NumeralStyle> NumeralStyleProperty =
         AvaloniaProperty.Register<AnalogClockControl, NumeralStyle>(nameof(NumeralStyle));
+
+    private readonly DispatcherTimer _timer;
+
+    public AnalogClockControl()
+    {
+        // Start with SmoothSeconds default (true) => ~60 FPS
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        _timer.Tick += (_, _) => InvalidateVisual();
+    }
 
     public IBrush? Foreground
     {
@@ -57,13 +64,6 @@ public class AnalogClockControl : Control
         set => SetValue(NumeralStyleProperty, value);
     }
 
-    public AnalogClockControl()
-    {
-        // Start with SmoothSeconds default (true) => ~60 FPS
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-        _timer.Tick += (_, _) => InvalidateVisual();
-    }
-
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
@@ -89,8 +89,14 @@ public class AnalogClockControl : Control
                      || Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
         var foreground = Foreground ?? (isDark ? Brushes.White : Brushes.Black);
 
-        var faceBrush = isDark ? new SolidColorBrush(Color.FromUInt32(0xFF22252A)) : new SolidColorBrush(Color.FromUInt32(0xFFFFFFFF));
-        var facePen = new Pen(isDark ? new SolidColorBrush(Color.FromUInt32(0xFF444A52)) : new SolidColorBrush(Color.FromUInt32(0xFFCCCCCC)), 2);
+        var faceBrush = isDark
+            ? new SolidColorBrush(Color.FromUInt32(0xFF22252A))
+            : new SolidColorBrush(Color.FromUInt32(0xFFFFFFFF));
+        var facePen =
+            new Pen(
+                isDark
+                    ? new SolidColorBrush(Color.FromUInt32(0xFF444A52))
+                    : new SolidColorBrush(Color.FromUInt32(0xFFCCCCCC)), 2);
         var tickPen = new Pen(foreground, 2);
         var minorTickPen = new Pen(foreground);
 
@@ -156,7 +162,8 @@ public class AnalogClockControl : Control
             new EllipseGeometry(new Rect(center.X - 3, center.Y - 3, 6, 6)));
     }
 
-    private static void DrawHand(DrawingContext ctx, Point center, double length, double unit, double thickness, IBrush brush)
+    private static void DrawHand(DrawingContext ctx, Point center, double length, double unit, double thickness,
+        IBrush brush)
     {
         var angle = unit * Math.PI * 2 - Math.PI / 2;
         var end = new Point(center.X + Math.Cos(angle) * length, center.Y + Math.Sin(angle) * length);
@@ -164,30 +171,27 @@ public class AnalogClockControl : Control
         ctx.DrawLine(pen, center, end);
     }
 
-    private static string GetNumeral(int hour, NumeralStyle style, CultureInfo culture)
+    private static string GetNumeral(int hour, NumeralStyle style, CultureInfo culture) => style switch
     {
-        return style switch
+        NumeralStyle.Roman => hour switch
         {
-            NumeralStyle.Roman => hour switch
-            {
-                1 => "I",
-                2 => "II",
-                3 => "III",
-                4 => "IV",
-                5 => "V",
-                6 => "VI",
-                7 => "VII",
-                8 => "VIII",
-                9 => "IX",
-                10 => "X",
-                11 => "XI",
-                12 => "XII",
-                _ => string.Empty
-            },
-            NumeralStyle.Arabic => hour.ToString(culture),
+            1 => "I",
+            2 => "II",
+            3 => "III",
+            4 => "IV",
+            5 => "V",
+            6 => "VI",
+            7 => "VII",
+            8 => "VIII",
+            9 => "IX",
+            10 => "X",
+            11 => "XI",
+            12 => "XII",
             _ => string.Empty
-        };
-    }
+        },
+        NumeralStyle.Arabic => hour.ToString(culture),
+        _ => string.Empty
+    };
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

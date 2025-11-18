@@ -6,25 +6,27 @@
         Width="400" Height="450"
         Title="AStar Development Clock">
 
-  <DockPanel>
-    <Menu DockPanel.Dock="Top">
-      <MenuItem Header="Settings">
-        <MenuItem Header="Theme">
-          <MenuItem Header="Light" Click="OnLight" />
-          <MenuItem Header="Dark" Click="OnDark" />
-          <MenuItem Header="Auto" Click="OnAuto" />
-        </MenuItem>
-        <MenuItem Header="Numerals">
-          <MenuItem Header="Arabic" Click="OnArabicNumerals" />
-          <MenuItem Header="Roman" Click="OnRomanNumerals" />
-          <MenuItem Header="None" Click="OnNoNumerals" />
-        </MenuItem>
-      </MenuItem>
-      <MenuItem Header="Close" Click="OnClose" />
-    </Menu>
-    <Border Margin="8" CornerRadius="12" Padding="12">
-      <c:AnalogClockControl x:Name="Clock" />
-    </Border>
-  </DockPanel>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Settings">
+                    <MenuItem Header="Theme">
+                        <MenuItem Header="Light" Click="OnLightModeSelected" />
+                        <MenuItem Header="Dark" Click="OnDarkModeSelected" />
+                        <MenuItem Header="Auto" Click="OnAutoModeSelected" />
+                    </MenuItem>
+                    <MenuItem Header="Numerals">
+                        <MenuItem Header="Arabic" Click="OnArabicNumeralsSelected" />
+                        <MenuItem Header="Roman" Click="OnRomanNumeralsSelected" />
+                        <MenuItem Header="None" Click="OnNoNumeralsSelected" />
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="Close" Click="OnClose" />
+            </MenuItem>
+        </Menu>
+        <Border Margin="8" CornerRadius="12" Padding="12">
+            <c:AnalogClockControl x:Name="Clock" />
+        </Border>
+    </DockPanel>
 
 </Window>
