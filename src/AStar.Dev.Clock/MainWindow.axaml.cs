@@ -12,10 +12,12 @@ public partial class MainWindow : Window
 {
     private AnalogClockControl? _clock;
     private CancellationTokenSource? _resizeCts;
+    private DispatcherTimer? _titleTimer;
 
     public MainWindow()
     {
         InitializeComponent();
+        StartTitleTimer();
     }
 
     private void InitializeComponent()
@@ -51,14 +53,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private void StartTitleTimer()
+    {
+        _titleTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(1)
+        };
+        _titleTimer.Tick += (_, _) => UpdateTitle()();
+        _titleTimer.Start();
+        UpdateTitle()(); // Initial update
+    }
+
     private Action UpdateTitle() => () =>
     {
+        var now = DateTime.Now;
+        var timeString = now.ToString("HH:mm");
+
         Title = ClientSize.Width switch
         {
-            < 200 => "Analog Clock",
-            >= 200 and < 400 => "AStar — Analog Clock",
-            >= 400 and < 800 => "AStar Dev — Analog Clock",
-            _ => "AStar Development — Analog Clock"
+            < 200 => $"{timeString} — Analog Clock",
+            >= 200 and < 400 => $"AStar — Analog Clock — {timeString}",
+            >= 400 and < 800 => $"AStar Dev — Analog Clock — {timeString}",
+            _ => $"AStar Development — Analog Clock — {timeString}"
         };
     };
 
