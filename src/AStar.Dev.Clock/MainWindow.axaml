@@ -5,16 +5,26 @@
         Icon="avares://AStar.Dev.Clock/Assets/astar.ico"
         Width="400" Height="450"
         Title="AStar Development Clock">
-  
+
   <DockPanel>
-    <StackPanel Orientation="Horizontal" Spacing="8" Margin="8" DockPanel.Dock="Top">
-      <Button Content="Light" Click="OnLight"/>
-      <Button Content="Dark" Click="OnDark"/>
-      <Button Content="Auto" Click="OnAuto"/>
-    </StackPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="Settings">
+        <MenuItem Header="Theme">
+          <MenuItem Header="Light" Click="OnLight" />
+          <MenuItem Header="Dark" Click="OnDark" />
+          <MenuItem Header="Auto" Click="OnAuto" />
+        </MenuItem>
+        <MenuItem Header="Numerals">
+          <MenuItem Header="Arabic" Click="OnArabicNumerals" />
+          <MenuItem Header="Roman" Click="OnRomanNumerals" />
+          <MenuItem Header="None" Click="OnNoNumerals" />
+        </MenuItem>
+      </MenuItem>
+      <MenuItem Header="Close" Click="OnClose" />
+    </Menu>
     <Border Margin="8" CornerRadius="12" Padding="12">
-      <c:AnalogClockControl />
+      <c:AnalogClockControl x:Name="Clock" />
     </Border>
   </DockPanel>
-  
+
 </Window>

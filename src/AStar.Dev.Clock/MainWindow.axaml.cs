@@ -1,3 +1,4 @@
+using AStar.Dev.Clock.Controls;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -26,4 +27,27 @@ public partial class MainWindow : Window
 
     private void OnAuto(object? sender, RoutedEventArgs e)
         => (Application.Current as App)?.SetTheme(null);
+
+    private void OnArabicNumerals(object? sender, RoutedEventArgs e)
+    {
+        var clock = this.FindControl<AnalogClockControl>("Clock");
+        if (clock != null) clock.NumeralStyle = NumeralStyle.Arabic;
+    }
+
+    private void OnRomanNumerals(object? sender, RoutedEventArgs e)
+    {
+        var clock = this.FindControl<AnalogClockControl>("Clock");
+        if (clock != null) clock.NumeralStyle = NumeralStyle.Roman;
+    }
+
+    private void OnNoNumerals(object? sender, RoutedEventArgs e)
+    {
+        var clock = this.FindControl<AnalogClockControl>("Clock");
+        if (clock != null) clock.NumeralStyle = NumeralStyle.None;
+    }
+
+    private void OnClose(object? sender, RoutedEventArgs e)
+    {
+        Close();
+    }
 }
