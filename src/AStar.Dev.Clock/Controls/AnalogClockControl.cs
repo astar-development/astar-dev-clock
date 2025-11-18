@@ -14,15 +14,53 @@ public class AnalogClockControl : Control
     private static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<AnalogClockControl, IBrush?>(nameof(Foreground), Brushes.Black);
 
+    // Customization properties
+    public static readonly StyledProperty<bool> SmoothSecondsProperty =
+        AvaloniaProperty.Register<AnalogClockControl, bool>(nameof(SmoothSeconds), true);
+
+    public static readonly StyledProperty<bool> ShowMinorTicksProperty =
+        AvaloniaProperty.Register<AnalogClockControl, bool>(nameof(ShowMinorTicks));
+
+    public static readonly StyledProperty<IBrush> SecondHandBrushProperty =
+        AvaloniaProperty.Register<AnalogClockControl, IBrush>(nameof(SecondHandBrush), Brushes.White);
+
+    public static readonly StyledProperty<NumeralStyle> NumeralStyleProperty =
+        AvaloniaProperty.Register<AnalogClockControl, NumeralStyle>(nameof(NumeralStyle));
+
     public IBrush? Foreground
     {
         get => GetValue(ForegroundProperty);
         set => SetValue(ForegroundProperty, value);
     }
 
+    public bool SmoothSeconds
+    {
+        get => GetValue(SmoothSecondsProperty);
+        set => SetValue(SmoothSecondsProperty, value);
+    }
+
+    public bool ShowMinorTicks
+    {
+        get => GetValue(ShowMinorTicksProperty);
+        set => SetValue(ShowMinorTicksProperty, value);
+    }
+
+    public IBrush SecondHandBrush
+    {
+        get => GetValue(SecondHandBrushProperty);
+        set => SetValue(SecondHandBrushProperty, value);
+    }
+
+    public NumeralStyle NumeralStyle
+    {
+        get => GetValue(NumeralStyleProperty);
+        set => SetValue(NumeralStyleProperty, value);
+    }
+
     public AnalogClockControl()
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        // Start with SmoothSeconds default (true) => ~60 FPS
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
         _timer.Tick += (_, _) => InvalidateVisual();
     }
 
@@ -62,14 +100,17 @@ public class AnalogClockControl : Control
         // Draw ticks
         for (var i = 0; i < 60; i++)
         {
+            var isMajor = i % 5 == 0;
+            if (!isMajor && !ShowMinorTicks) continue;
+
             var angle = Math.PI * 2 * (i / 60.0) - Math.PI / 2; // start at 12 o'clock
             var cos = Math.Cos(angle);
             var sin = Math.Sin(angle);
 
             var outer = new Point(center.X + cos * radius * 0.95, center.Y + sin * radius * 0.95);
-            var innerLen = (i % 5 == 0) ? 0.78 : 0.88; // hour ticks longer
+            var innerLen = isMajor ? 0.78 : 0.88; // hour ticks longer
             var inner = new Point(center.X + cos * radius * innerLen, center.Y + sin * radius * innerLen);
-            context.DrawLine(i % 5 == 0 ? tickPen : minorTickPen, inner, outer);
+            context.DrawLine(isMajor ? tickPen : minorTickPen, inner, outer);
         }
 
         // Draw hour numbers (1-12)
@@ -81,37 +122,34 @@ public class AnalogClockControl : Control
         const FlowDirection flow = FlowDirection.LeftToRight;
         for (var h = 1; h <= 12; h++)
         {
+            if (NumeralStyle == NumeralStyle.None) break;
+
             var angle = Math.PI * 2 * (h / 12.0) - Math.PI / 2; // 12 at the top
             var cos = Math.Cos(angle);
             var sin = Math.Sin(angle);
 
             var pos = new Point(center.X + cos * numberRadius, center.Y + sin * numberRadius);
 
-            // Use FormattedText so we can measure and center precisely
-            var text = h.ToString();
+            // Use FormattedText and approximate size to center text
+            var text = GetNumeral(h, NumeralStyle, culture);
             var ft = new FormattedText(text, culture, flow, numberTypeface, numberSize, foreground);
-            // Approximate text size since FormattedText doesn't expose Size in this API surface
-            var approxWidth = (text.Length == 1 ? 0.6 : 0.9) * numberSize;
+            var approxWidth = (text.Length == 1 ? 0.6 : text.Length == 2 ? 1.0 : 1.2) * numberSize;
             var approxHeight = numberSize; // rough height equals font size
-            // Center the text at computed position
             var origin = new Point(pos.X - approxWidth / 2.0, pos.Y - approxHeight / 2.0);
             context.DrawText(ft, origin);
         }
 
         // Current time
-        // Note: We invalidate once per second via DispatcherTimer. Using milliseconds here
-        // would place the second hand between ticks most of the time because the timer
-        // doesn't fire exactly on the zero millisecond boundary. Snap to whole seconds
-        // so the second hand aligns precisely with the 60 tick marks.
         var now = DateTime.Now;
-        var sec = now.Second; // snap to whole second to align with tick marks
+        // Smooth seconds if enabled; otherwise snap to whole second for alignment
+        var sec = SmoothSeconds ? now.Second + now.Millisecond / 1000.0 : now.Second;
         var min = now.Minute + sec / 60.0;
         var hour = now.Hour % 12 + min / 60.0;
 
         // Hands
         DrawHand(context, center, radius * 0.55, hour / 12.0, 8, Brushes.Red);
         DrawHand(context, center, radius * 0.75, min / 60.0, 5, Brushes.Blue);
-        DrawHand(context, center, radius * 0.85, sec / 60.0, 1.5, isDark ? Brushes.White : Brushes.Black);
+        DrawHand(context, center, radius * 0.85, sec / 60.0, 1.5, SecondHandBrush);
 
         // Center cap
         context.DrawGeometry(isDark ? Brushes.OrangeRed : Brushes.Crimson, null,
@@ -125,4 +163,43 @@ public class AnalogClockControl : Control
         var pen = new Pen(brush, thickness, lineCap: PenLineCap.Round);
         ctx.DrawLine(pen, center, end);
     }
+
+    private static string GetNumeral(int hour, NumeralStyle style, CultureInfo culture)
+    {
+        return style switch
+        {
+            NumeralStyle.Roman => hour switch
+            {
+                1 => "I",
+                2 => "II",
+                3 => "III",
+                4 => "IV",
+                5 => "V",
+                6 => "VI",
+                7 => "VII",
+                8 => "VIII",
+                9 => "IX",
+                10 => "X",
+                11 => "XI",
+                12 => "XII",
+                _ => string.Empty
+            },
+            NumeralStyle.Arabic => hour.ToString(culture),
+            _ => string.Empty
+        };
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == SmoothSecondsProperty)
+            _timer.Interval = SmoothSeconds ? TimeSpan.FromMilliseconds(16) : TimeSpan.FromSeconds(1);
+    }
+}
+
+public enum NumeralStyle
+{
+    Arabic,
+    Roman,
+    None
 }
