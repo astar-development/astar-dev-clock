@@ -1,9 +1,9 @@
 ### AStar.Dev.Clock — Avalonia Analog Clock (Light/Dark Theme)
 
-This is a cross‑platform C# project (targeting .NET 9 / Avalonia 11) that displays an analog clock with a light and dark theme. It should run on Linux Mint, as well as other desktop OSes supported by .NET and Avalonia.
+This is a cross‑platform C# project (targeting .NET 10 / Avalonia 11) that displays an analog clock with a light and dark theme. It should run on Linux Mint, as well as other desktop OSes supported by .NET and Avalonia.
 
 #### Prerequisites
-- .NET 9 SDK (or newest installed SDK that supports Avalonia 11). On Linux Mint, you can install from Microsoft’s package feeds or via `dotnet-install.sh`.
+- .NET 10 SDK (or newest installed SDK that supports Avalonia 11). On Linux Mint, you can install from Microsoft’s package feeds or via `dotnet-install.sh`.
 
 Verify installation:
 ```
